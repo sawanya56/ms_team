@@ -14,7 +14,16 @@ try {
     Write-Host "Connected to the database successfully."
 
     # ทำงานกับฐานข้อมูลที่เชื่อมต่อได้ที่นี่
-    $query = "SELECT * FROM courses INNER JOIN sections ON courses.course_code = sections.course_code LIMIT 1;"
+    # $query = "SELECT * FROM view_sections LIMIT 1;"
+    $query = "SELECT
+    sections.section,
+    sections.team_name,
+    courses.description
+    FROM sections 
+    LEFT JOIN courses 
+    ON sections.course_code = courses.course_code 
+    GROUP BY section LIMIT 1;"
+    # $query = "SELECT * FROM courses INNER JOIN sections ON courses.course_code = sections.course_code LIMIT 1;"
     $command = New-Object MySql.Data.MySqlClient.MySqlCommand($query, $connection)
     $adapter = New-Object MySql.Data.MySqlClient.MySqlDataAdapter($command)
     $dataset = New-Object System.Data.DataSet
