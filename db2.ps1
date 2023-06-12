@@ -8,7 +8,7 @@ try {
 
     # ทำงานกับฐานข้อมูลที่เชื่อมต่อได้ที่นี่
     # $query = "SELECT * FROM sections WHERE id = '7' LIMIT 1;"
-    $query = "SELECT * FROM view_sections;"
+    $query = "SELECT * FROM view_sections LIMIT 10;"
     $command = New-Object MySql.Data.MySqlClient.MySqlCommand($query, $connection)
     $adapter = New-Object MySql.Data.MySqlClient.MySqlDataAdapter($command)
     $dataset = New-Object System.Data.DataSet
@@ -25,44 +25,50 @@ catch {
 foreach ($row in $table.Rows) {
 
     try {
-        # $year = $row["year"]
-        # $course_code = $row["course_code"]
-        # $term = $row["term"]
+
         $section = $row["section"]
-        $team_name = $row["team_name"]
-        # $course_name = $row["course_name"]
-       
-        # $year = $year.ToString()
-        # $course_code = $course_code.ToString()
-        # $term = $term.ToString()
+        # $team_name = $row["team_name"]
         $section = $section.ToString()
-        # $course_name = $course_name.ToString()
-        # $team_name+$section
-        $full_name = $team_name + $section
-        $full_name
+
+        # $full_name = $team_name + $section
+        # $full_name
         #การสร้างห้อง
-        # $row['team_name']
-        # $teamName = "ห้องทีม $i"
-        # $teamDescription = "คำอธิบายห้องทีม $i"
+
         $teamDescription = $row['description']
-        $team = New-Team -DisplayName $row['team_name'] -Description $teamDescription
-        # $sectionId = $row["id"]
-        # # แสดงค่า groupId
-        $groupId = $team.GroupId
-        $team
-        Write-Output ("รหัสห้องทีมของห้อง {0}: {1}" -f $team, $groupId)
 
-        $connection.Open()
-        # Define the SQL query for the insert statement
-        $groupId = $groupId.ToString()
-        $query = "UPDATE sections SET ms_team_id = '$groupId' WHERE section = '$section';"
-        $query
+        # Check Empty String Or null
+        if ([string]::IsNullOrEmpty($teamDescription)) {
+            $teamDescription = "Description";
+        }
 
-        # # Execute the insert query
-        $command = $connection.CreateCommand()
-        $command.CommandText = $query
-        $command.ExecuteNonQuery()
-        $connection.Close()
+        # Check Team exist
+       
+        $team = New-Team -DisplayName $section -Description $section
+
+        if ($team) {
+            # Write-Host "Team created successfully!"
+            $groupId = $team.GroupId
+            # $team
+            Write-Output ("Team created successfully! KEY ID : " + $groupId)
+        
+            # UPDATE MS TEAM KEY
+            $connection.Open()
+            $groupId = $groupId.ToString()
+            $query = "UPDATE sections SET ms_team_id = '$groupId' WHERE section = '$section';"
+            $command = $connection.CreateCommand()
+            $command.CommandText = $query
+            $command.ExecuteNonQuery()
+            $connection.Close()
+            # UPDATE MS TEAM KEY
+        }
+        else {
+            Write-Output ("Crearte Fail {0}: {1}" -f $team, $row)
+        }
+        
+
+        
+
+        
     }
     catch {
         Write-Host "An error occurred: $($_.Exception.Message)"
