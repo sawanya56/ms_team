@@ -109,10 +109,11 @@ function AddEvent {
                 $durationtime = New-TimeSpan -Minutes $date_db['duration_time']
                 $newdatetime = $dateTime.Add($durationtime)
 
-                $curent_date = $currentDate.ToString("yyyy-MM-dd")
-                $start_time = $dateTime.ToString("H:mm")
-                $end_time = $newdatetime.ToString("H:mm")
-                Write-Host $curent_date $shortDay $start_time $end_time
+                # $curent_date = $currentDate.ToString("yyyy-MM-dd")
+                $start_time = $dateTime.ToString("yyyy-MM-dd HH:mm")
+                $end_time = $newdatetime.ToString("yyyy-MM-dd HH:mm")
+                Write-Host $start_time $end_time
+                # New-Event -GroupId $groupId -StartDateTime $start_time -EndDateTime $end_time
             }
             # $shortDay = = $date_db['week_of_day']
 
@@ -132,7 +133,8 @@ try {
 
     # ทำงานกับฐานข้อมูลที่เชื่อมต่อได้ที่นี่
     # $query = "SELECT * FROM sections WHERE id = '7' LIMIT 1;"
-    $query = "SELECT * FROM view_sections;"
+    # $query = "SELECT * FROM view_sections"
+    $query = "SELECT * FROM view_sections WHERE section = 333145"
     $command = New-Object MySql.Data.MySqlClient.MySqlCommand($query, $connection)
     $adapter = New-Object MySql.Data.MySqlClient.MySqlDataAdapter($command)
     $dataset = New-Object System.Data.DataSet
@@ -165,15 +167,15 @@ foreach ($row in $table.Rows) {
             $teamDescription = "Description";
         }
 
-        # Check Team exist
-        # $team = New-TeamFromTemplate -DisplayName $section -Description $section -TemplateAppId "8ec74a39-ddf6-41e1-b0a2-ff0459ea8eb8"
-        # $team = New-TeamFromTemplate -DisplayName "New Team" -Description "Description of the new team" -TemplateAppId "8ec74a39-ddf6-41e1-b0a2-ff0459ea8eb8"
+        # $groupId = "sdfsdfsdf"
+        # AddEvent -sectionId $section -groupId $groupId -startDate $row['course_start_date'] -endDate $row['course_end_date']
  
         $team = New-Team -DisplayName $section -Description $section -Template "EDU_Class"
-
+       
         if ($team) {
             # Write-Host "Team created successfully!"
             $groupId = $team.GroupId
+            Set-TeamFunSettings -GroupId $groupId -AllowScheduleMeetings $true
             # $team
             Write-Output ("Team created successfully! KEY ID : " + $groupId)
         
@@ -192,7 +194,7 @@ foreach ($row in $table.Rows) {
             # AddInstructor -sectionId $section -groupId $groupId
             # $startDate = $row['course_start_date']
             # $endDate = $row['course_end_date']
-            # AddEvent -sectionId $section -groupId $groupId -startDate $startDate -endDate $endDate
+            AddEvent -sectionId $section -groupId $groupId -startDate $row['course_start_date'] -endDate $row['course_end_date']
         }
         else {
             Write-Output ("Crearte Fail {0}: {1}" -f $team, $row)
