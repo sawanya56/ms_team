@@ -26,8 +26,9 @@ foreach ($row in $table.Rows) {
         Remove-Team -GroupId $groupId
 
         $groupId = $groupId.ToString()
-        $query = "UPDATE sections SET ms_team_id = null WHERE section = '$section';"
+        $query = "UPDATE sections SET ms_team_id = null WHERE ms_team_id = '$groupId';"
         # # Execute the insert query
+        $connection.Open()
         $command = $connection.CreateCommand()
         $command.CommandText = $query
         $command.ExecuteNonQuery()

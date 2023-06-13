@@ -30,11 +30,25 @@ function AddStudents {
 function AddInstructor {
     param(
         [Parameter(Position = 0, Mandatory = $true)]
-        [string] $sectionId
+        [string] $sectionId,
+        [Parameter(Position = 1, Mandatory = $true)]
+        [string] $groupId
     )
 
-    
-
+    $connection.Open()
+    $sectionId = $sectionId.ToString()
+    $query = "SELECT * FROM view_instructors WHERE section = '$sectionId';"
+    $command = New-Object MySql.Data.MySqlClient.MySqlCommand($query, $connection)
+    $adapter = New-Object MySql.Data.MySqlClient.MySqlDataAdapter($command)
+    $dataset = New-Object System.Data.DataSet
+    $adapter.Fill($dataset) | Out-Null
+    $table = $dataset.Tables[0]
+    $connection.Close()
+    foreach ($row in $table.Rows) {
+        $instructor_mail = $row['instructor_mail'];
+        Write-Host "$sectionId + $instructor_mail "
+        Add-TeamUser -GroupId $groupId -User $instructor_mail -Role "owner"
+    }
     return $sectionId
 }
 
@@ -45,7 +59,7 @@ try {
 
     # ทำงานกับฐานข้อมูลที่เชื่อมต่อได้ที่นี่
     # $query = "SELECT * FROM sections WHERE id = '7' LIMIT 1;"
-    $query = "SELECT * FROM view_sections LIMIT 1;"
+    $query = "SELECT * FROM view_sections;"
     $command = New-Object MySql.Data.MySqlClient.MySqlCommand($query, $connection)
     $adapter = New-Object MySql.Data.MySqlClient.MySqlDataAdapter($command)
     $dataset = New-Object System.Data.DataSet
@@ -79,8 +93,10 @@ foreach ($row in $table.Rows) {
         }
 
         # Check Team exist
-       
-        $team = New-Team -DisplayName $section -Description $section
+        # $team = New-TeamFromTemplate -DisplayName $section -Description $section -TemplateAppId "8ec74a39-ddf6-41e1-b0a2-ff0459ea8eb8"
+        # $team = New-TeamFromTemplate -DisplayName "New Team" -Description "Description of the new team" -TemplateAppId "8ec74a39-ddf6-41e1-b0a2-ff0459ea8eb8"
+ 
+        $team = New-Team -DisplayName $section -Description $section -Template "EDU_Class"
 
         if ($team) {
             # Write-Host "Team created successfully!"
@@ -99,7 +115,9 @@ foreach ($row in $table.Rows) {
             # UPDATE MS TEAM KEY
 
             # Call function for add student
-            AddStudents -sectionId $section -groupId $groupId
+            # AddStudents -sectionId $section -groupId $groupId
+            # AddInstructor -sectionId $section -groupId $groupId
+
         }
         else {
             Write-Output ("Crearte Fail {0}: {1}" -f $team, $row)
